@@ -1,22 +1,26 @@
+# For more information, please refer to https://aka.ms/vscode-docker-python
 FROM python:3.10-alpine3.14
-LABEL maintainer="Josh Grosserhode"
 
+EXPOSE 8000
+
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-# Copies from the adjacent directory to the docker image
+# Install pip requirements
 COPY ./requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt
+RUN python -m pip install -r requirements.txt
 
-RUN mkdir /app
-# starting location when running image
 WORKDIR /app
 COPY ./app /app
 
-# create user to run docker image, -D is a user that does not have a directory, but only runs image
-RUN adduser -D user
-# switch to new user, this is for security and prevents the root account user from running application
-USER user
+# Creates a non-root user with an explicit UID and adds permission to access the /app folder
+# For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
 
-# run cmd: docker build .
-
-
+# During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
+# File wsgi.py was not found in subfolder: 'recipe-app-api'. Please enter the Python path to wsgi file.
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app.wsgi"]
