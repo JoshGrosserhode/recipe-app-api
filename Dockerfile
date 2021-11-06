@@ -9,11 +9,21 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-# Install pip requirements
+# copy pip requirements
 COPY ./requirements.txt /requirements.txt
+# install postgres-cleint
+RUN apk add --update --no-cache postgresql-client
+# install temporary dependencies needed for all pip requirements
+RUN apk add --update --no-cache --virtual .tmp-build-deps \
+    gcc libc-dev linux-headers postgresql-dev
+# install pip requirements
 RUN python -m pip install -r requirements.txt
+# remove temporary dependencies folder
+RUN apk del .tmp-build-deps
 
+# set working directory to images /app folder
 WORKDIR /app
+# copy from the local ./app folder to the image /app folder
 COPY ./app /app
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
