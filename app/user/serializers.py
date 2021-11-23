@@ -22,7 +22,9 @@ class AuthTokenSerializer(serializers.Serializer):
 
     email = serializers.CharField()
     password = serializers.CharField(
-        style={"input_type", "password"}, trim_whitespace=False
+        label=_("Password"),
+        style={"input_type": "password"},
+        trim_whitespace=False,
     )
 
     def validate(self, attrs):  # all fields in a serializer are in attrs dict
@@ -31,7 +33,9 @@ class AuthTokenSerializer(serializers.Serializer):
         password = attrs.get("password")
 
         user = authenticate(
-            self.context.get("request"),  # get access to the request context
+            request=self.context.get(
+                "request"
+            ),  # get access to the request context
             username=email,
             password=password,
         )
